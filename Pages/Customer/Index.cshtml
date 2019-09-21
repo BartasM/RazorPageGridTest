@@ -1,0 +1,50 @@
+﻿@page
+@model RazorPageGridTest.Pages.Customer.IndexModel
+@{
+    ViewData["Title"] = "Index";
+}
+
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Xsrf
+@Html.AntiForgeryToken()
+
+@using Kendo.Mvc.UI
+
+<h2>Index</h2>
+
+<div id="grid">
+
+</div>
+
+@(Html.Kendo().Grid<RazorPageGridTest.Customer>().Name("grid")
+    .AutoBind(false)
+    .Groupable()
+    .Sortable()
+    .Columns(x=> {
+        x.Bound(c=> c.Address);
+        x.Bound(c=> c.Name);
+        x.Command(c => c.Edit());
+    })
+    .DataSource(d=> d.Ajax()
+           .Read(r => r.Action("Customer", "Index", new { handler = "ReadRecords" }).Type(HttpVerbs.Post))
+           .Update(u => u.Action("Customer", "Index", new { handler = "UpdateRecord" }).Type(HttpVerbs.Post))
+           .Model(m=> m.Id(id=> id.CustomerId))
+        .PageSize(10)
+    )
+    .Pageable()
+    )
+
+<script>
+    $(function() {
+        var grid = $("#grid").data("kendoGrid");
+
+        grid.dataSource.transport.options.read.beforeSend = function (req) {
+            req.setRequestHeader('RequestVerificationToken', $('input:hidden[name="__RequestVerificationToken"]').val());
+        };
+
+        grid.dataSource.transport.options.update.beforeSend = function (req) {
+            req.setRequestHeader('RequestVerificationToken', $('input:hidden[name="__RequestVerificationToken"]').val());
+        };
+
+        grid.dataSource.read();
+    });
+</script>
